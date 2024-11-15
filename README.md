@@ -66,6 +66,6 @@ L'objectif est de vérifier si le client peut recevoir l'adresse **`172.16.10.15
 
 #### Capture d'écran du résultat de `ipconfig /all` :
 
-![ipconfig all](path/to/screenshot3.png)
+![172.16.10.15 done](https://github.com/AhmedNady90/ASRC-Checkpoint-2/blob/main/172.16.10.15.PNG)
 
 ---
