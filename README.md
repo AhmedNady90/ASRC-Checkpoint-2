@@ -6,7 +6,7 @@
 Le ping entre les machines ne fonctionne pas car les adresses IP des machines sont dans des sous-réseaux différents :
 - **Client** : `172.16.100.50/24`
 - **Serveur** : `172.16.10.10/24`
-
+![IPmodified](https://github.com/AhmedNady90/ASRC-Checkpoint-2/blob/main/IPClientmodified.PNG)
 Les adresses sont dans des sous-réseaux distincts, ce qui empêche la communication directe.
 
 ### Solution :
@@ -19,7 +19,7 @@ Le **ping** a fonctionné avec succès après avoir modifié l'adresse IP du cli
 
 #### Capture d'écran du **ping fonctionnel** :
 
-![ping fonctionnel](path/to/screenshot.png)
+![ping fonctionnel](https://github.com/AhmedNady90/ASRC-Checkpoint-2/blob/main/PingReussi.PNG)
 
 ---
 
@@ -40,7 +40,7 @@ Le client a récupéré l'adresse **`172.16.10.20`**, mais il n'a pas récupér�
 
 #### Capture d'écran de l'adresse IP attribuée par DHCP :
 
-![ipconfig DHCP](https://github.com/AhmedNady90/ASRC-Checkpoint-2/commit/7ca8ab572553d044fee6161665e2b99afe95650d)
+![IP attribuée par DHCP](https://github.com/AhmedNady90/ASRC-Checkpoint-2/blob/main/IP_Attribu%C3%A9DHCP.PNG)
 
 ---
 
