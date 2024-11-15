@@ -40,7 +40,7 @@ Le client a récupéré l'adresse **`172.16.10.20`**, mais il n'a pas récupér�
 
 #### Capture d'écran de l'adresse IP attribuée par DHCP :
 
-![ipconfig DHCP](path/to/screenshot2.png)
+![ipconfig DHCP](https://github.com/AhmedNady90/ASRC-Checkpoint-2/commit/7ca8ab572553d044fee6161665e2b99afe95650d)
 
 ---
 
