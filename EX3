@@ -41,8 +41,9 @@ PC1, PC3, PC4 et PC5 peuvent tous communiquer entre eux car ces ordinateurs sont
 PC2 (10.11.80.2/16) ne peut pas communiquer directement avec PC1, PC3, PC4 ou PC5 car il se trouve dans un réseau différent (10.11.0.0/16). Il appartient à un réseau distinct, et donc, pour communiquer avec les autres ordinateurs (qui sont dans le réseau 10.10.0.0/16 ou 10.10.0.0/15), il doit passer par un routeur.
 # Q.3.8 De même, indique ceux qui vont pouvoir atteindre le réseau 172.16.5.0/24.
 
-Aucun Pc ne peut atteindre directement le réseau 172.16.5.0/24, car tous sont dans des réseaux privés distincts (10.10.x.x, 10.11.x.x), et 172.16.5.0/24 se trouve dans un espace d'adresses différent.
-Ils devront passer par un routeur pour atteindre le réseau 172.16.5.0/24, à condition que le routage entre les réseaux soit correctement configuré.
+PC1, PC3, PC4, PC5 (dans 10.10.0.0/16) peuvent atteindre 172.16.5.0/24.
+PC2 (dans 10.11.80.0/16) ne peut pas atteindre 172.16.5.0/24.
+
 # Q.3.9 Quel incidence y-a-t'il pour les ordinateurs PC2 et PC3 si on interverti leur ports de connexion sur le matériel A ?
 Aucun effet sur la communication entre eux (sous-réseaux différents)
 # Q.3.10 On souhaite mettre la configuration IP des ordinateurs en dynamique. Quelles sont les modifications possible ?
