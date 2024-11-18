@@ -1,9 +1,9 @@
+# Fonction pour enregistrer les événements dans un fichier de log
 function Log {
     param([string]$FilePath,[string]$Content)
 
     # Vérifie si le fichier existe, sinon le crée
-    If (-not (Test-Path -Path $FilePath))
-    {
+    If (-not (Test-Path -Path $FilePath)) {
         New-Item -ItemType File -Path $FilePath | Out-Null
     }
 
@@ -17,92 +17,146 @@ function Log {
 }
 
 Function Random-Password {
- param (
-        [int]$length = 10
+    param (
+        [int]$length = 10  # Le mot de passe doit avoir 10 caractères maintenant
     )
+     # Plage de caractères autorisés pour la génération du mot de passe
     $punc = 46..46
     $digits = 48..57
     $letters = 65..90 + 97..122
 
+    # Génère un mot de passe aléatoire avec les caractères spécifiés
     $password = get-random -count $length -input ($punc + $digits + $letters) |`
         ForEach-Object -begin { $aa = $null } -process {$aa += [char]$_} -end {$aa}
     Return $password.ToString()
 }
 
+# Fonction pour gérer les accents et mettre les caractères en minuscules
 Function ManageAccentsAndCapitalLetters {
     param (
         [String]$String
     )
 
+ # Remplacement des caractères accentués par leurs équivalents sans accent et conversion en minuscules
     $StringWithoutAccent = $String -replace '[éèêë]', 'e' -replace '[àâä]', 'a' -replace '[îï]', 'i' -replace '[ôö]', 'o' -replace '[ùûü]', 'u'
     $StringWithoutAccentAndCapitalLetters = $StringWithoutAccent.ToLower()
     $StringWithoutAccentAndCapitalLetters
 }
 
+# Fonction pour nettoyer les caractères invalides dans le nom d'utilisateur
+Function Clean-Username {
+    param (
+        [string]$Username
+    )
+
+    # Remplacer les points-virgules et les espaces par des underscores et autres caractères valides
+    $CleanedUsername = $Username -replace '[^a-zA-Z0-9]', ''
+    return $CleanedUsername
+}
+
+# Définition des chemins d'accès pour les fichiers utilisés par le script
 $Path = "C:\Scripts"
 $CsvFile = "$Path\Users.csv"
 $LogFile = "$Path\Log.log"
 
+# Vérification de l'existence du fichier CSV
 if (-not (Test-Path -Path $CsvFile)) {
     Write-Host "Le fichier CSV n'existe pas à l'emplacement spécifié : $CsvFile"
     exit
 }
 
-# Modification pour inclure le premier utilisateur du fichier CSV
-$Users = Import-Csv -Path $CsvFile -Delimiter ";" -Header "prenom","nom","societe","fonction","service","description","mail","mobile","scriptPath","telephoneNumber" -Encoding UTF8
+# Importation des données CSV en spécifiant le séparateur
+$Users = Import-Csv -Path $CsvFile -Delimiter ";" -Encoding UTF8
 
+# Si le fichier CSV est vide, le script s'arrête
 if ($Users.Count -eq 0) {
     Write-Host "Aucun utilisateur trouvé dans le fichier CSV."
     exit
 }
 
-foreach ($User in $Users)
-{
-    Write-Host "Traitement de l'utilisateur : $($User.prenom) $($User.nom)"
+# Affichage des 3 premières lignes du fichier CSV importé pour vérifier que les données sont correcte
+Write-Host "Affichage des 3 premières lignes du fichier CSV importé :"
+$Users[0..2] | ForEach-Object { Write-Host "Prénom: $($_.prenom), Nom: $($_.nom), Email: $($_.mail)" }
 
+# Vérifier si le groupe "Utilisateurs" existe
+$GroupName = "Utilisateurs"
+$Group = Get-LocalGroup -Name $GroupName -ErrorAction SilentlyContinue
+if (-not $Group) {
+    $GroupName = "Users"  # Pour les systèmes en anglais
+}
+
+# Traitement de chaque utilisateur dans le fichier CSV
+foreach ($User in $Users) {
+    # Affichage du contenu de chaque ligne pour débogage
+    Write-Host "Traitement de l'utilisateur : $($User.prenom) $($User.nom)"
+    Write-Host "Prénom: $($User.prenom), Nom: $($User.nom), Société: $($User.societe), Fonction: $($User.fonction), Service: $($User.service), Email: $($User.mail)"
+
+    # Vérifier que le prénom et le nom ne sont pas vides
+    if (-not $User.prenom -or -not $User.nom) {
+        Write-Host "Erreur : Le prénom ou le nom est manquant pour cet utilisateur. L'utilisateur sera ignoré."
+        Log -FilePath $LogFile -Content "Missing first or last name for user: $($User.mail)"
+        continue
+    }
+
+    # Gestion des accents et capitalisation
     $Prenom = ManageAccentsAndCapitalLetters -String $User.prenom
     $Nom = ManageAccentsAndCapitalLetters -String $User.nom
-    $Name = "$Prenom.$Nom"
 
-    Write-Host "Nom d'utilisateur généré : $Name"
+    # Génération du nom d'utilisateur (seulement prénom.nom)
+    $Name = "$Prenom.$Nom"
+    
+    # Nettoyer le nom d'utilisateur (supprimer les caractères invalides)
+    $CleanedName = Clean-Username -Username $Name
+
+    # Tronque le nom d'utilisateur à 20 caractères s'il est trop long
+    if ($CleanedName.Length -gt 20) {
+        $CleanedName = $CleanedName.Substring(0, 20)  # Tronque à 20 caractères si nécessaire
+    }
+
+    # Vérification de la validité du nom d'utilisateur
+    if ($CleanedName -match '[^a-zA-Z0-9.]') {
+        Write-Host "Le nom d'utilisateur '$CleanedName' contient des caractères non valides. L'utilisateur sera ignoré."
+        Log -FilePath $LogFile -Content "User $CleanedName has invalid characters and was skipped."
+        continue
+    }
+
+    Write-Host "Nom d'utilisateur généré : $CleanedName"
 
     # Vérification si l'utilisateur existe déjà
-    If (-not(Get-LocalUser -Name $Name -ErrorAction SilentlyContinue))
-    {
-        # Création du mot de passe
-        $Pass = Random-Password -length 10
-        $Password = (ConvertTo-SecureString $Pass -AsPlainText -Force)
-        
-        # Utilisation du champ Description dans la création de l'utilisateur
+    If (-not (Get-LocalUser -Name $CleanedName -ErrorAction SilentlyContinue)) {
+        # Génération d'un mot de passe aléatoire
+        $Pass = Random-Password
+        $Password = ConvertTo-SecureString $Pass -AsPlainText -Force
+
+        # Utilisation de la description (combinaison de la fonction et de la société)
         $Description = "$($User.description) - $($User.fonction)"
-        
+
+        # Informations pour créer l'utilisateur
         $UserInfo = @{
-            Name                 = $Name
+            Name                 = $CleanedName
             FullName             = "$Prenom $Nom"
             Password             = $Password
-            Description          = $Description
             AccountNeverExpires  = $true
-            PasswordNeverExpires = $true  # Le mot de passe ne doit pas expirer
+            PasswordNeverExpires = $false
+            Description          = $Description  # Ajout de la description
         }
 
-        # Création de l'utilisateur
+        #  Création de l'utilisateur local
         New-LocalUser @UserInfo
-        
-        # Ajout de l'utilisateur au groupe "Utilisateurs"
-        Add-LocalGroupMember -Group "Utilisateurs" -Member $Name
 
-        Write-Host "L'utilisateur $Name a été créé avec succès. Mot de passe : $Pass"
+        # Ajout de l'utilisateur au groupe spécifié
+        Add-LocalGroupMember -Group $GroupName -Member $CleanedName
 
-        # Log de la création de l'utilisateur
-        Log -FilePath $LogFile -Content "User $Name created successfully"
-    }
-    else {
-        Write-Host "L'utilisateur $Name existe déjà."
-        
-        # Log si l'utilisateur existe déjà
-        Log -FilePath $LogFile -Content "User $Name already exists."
+        # Affichage des informations de l'utilisateur créé et journalisation
+        Write-Host "L'utilisateur $CleanedName a été créé. Mot de passe : $Pass"
+        Log -FilePath $LogFile -Content "User $CleanedName created successfully with password $Pass"
+    } else {
+        # Si l'utilisateur existe déjà, on le log et passe à l'utilisateur suivant
+        Write-Host "L'utilisateur $CleanedName existe déjà."
+        Log -FilePath $LogFile -Content "User $CleanedName already exists."
     }
 }
+
 
 ####################################################################################################################
 ### commentaire sur les questions données:
