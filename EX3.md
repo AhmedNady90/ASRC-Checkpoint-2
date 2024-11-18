@@ -110,5 +110,5 @@ Adresse MAC destination : ca:03:9e:ef:00:38
 
 ####  Q.3.23 A quel emplacement du réseau a été enregistré cette communication ?
 
-La communication a probablement été enregistrée sur un équipement réseau de bordure, tel qu'un switch ou un routeur, au niveau du réseau local 10.10.4.0/24 avant que le paquet ne soit routé vers le réseau 172.16.5.0/24. Cela signifie que l'enregistrement de la communication a eu lieu dans le réseau local de l'adresse source (10.10.4.0/24) ou dans un dispositif réseau qui se situe entre ces deux sous-réseaux.
+ Sur materiel B, à savoir, le routeur 1
 
